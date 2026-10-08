@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plano de Férias - 15ª Cia PM Ind</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root {
             --primary-color: #0b1c3a; /* Azul PMMG */
@@ -38,6 +40,79 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             border-top: 5px solid var(--accent-color);
+            transition: max-width 0.3s ease;
+        }
+
+        .container.admin-wide {
+            max-width: 980px;
+        }
+
+        .opt-cell {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .btn-icon-trash {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-size: 11px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .btn-icon-trash:hover {
+            background: #dc2626;
+            color: #ffffff;
+        }
+
+        .btn-icon-restore {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-icon-restore:hover {
+            background: #15803d;
+            color: #ffffff;
+        }
+
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 8px;
+        }
+
+        .admin-tab-btn {
+            flex: 1;
+            padding: 9px 12px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            color: #374151;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .admin-tab-btn.active {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
         }
 
         .header {
@@ -207,11 +282,11 @@
         </div>
         <div class="form-group">
             <label for="matricula">Nº da Matrícula:</label>
-            <input type="text" id="matricula" placeholder="Ex: 123.456-7" required>
+            <input type="text" id="matricula" maxlength="9" inputmode="numeric" oninput="formatarMatricula(this)" required>
         </div>
         <div class="form-group">
             <label for="nome">Nome Completo:</label>
-            <input type="text" id="nome" placeholder="Ex: Soldado Silva Santos" required>
+            <input type="text" id="nome" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" required>
         </div>
         <button class="btn" onclick="avancarParaOpcoes()">Acessar Sistema</button>
         <button class="btn btn-admin" onclick="mostrarPainelAdmin()">Painel do Gestor</button>
@@ -220,6 +295,7 @@
     <!-- TELA 2: Escolha de Férias -->
     <div id="screen-options" class="screen">
         <div class="header">
+            <img src="logo.png" alt="Brasão 15ª Cia PM Ind" style="width: 70px; height: 70px;">
             <h1>Escolha de 3 Opções</h1>
             <h2 id="display-militar">Militar: </h2>
         </div>
@@ -239,6 +315,7 @@
     <!-- TELA 3: Confirmação -->
     <div id="screen-success" class="screen">
         <div class="header">
+            <img src="logo.png" alt="Brasão 15ª Cia PM Ind" style="width: 70px; height: 70px;">
             <h1>Enviado com Sucesso!</h1>
             <p style="margin-top: 15px; font-size: 14px; color: #555;">Suas 3 opções de férias foram registradas com segurança. O resultado consolidado será verificado exclusivamente pela administração.</p>
         </div>
@@ -248,33 +325,69 @@
     <!-- TELA 4: Painel do Gestor (Admin) -->
     <div id="screen-admin" class="screen">
         <div class="header">
+            <img src="logo.png" alt="Brasão 15ª Cia PM Ind" style="width: 70px; height: 70px;">
             <h1>Painel do Gestor</h1>
             <h2>Respostas Cadastradas</h2>
         </div>
         <div id="admin-content">
             <div class="form-group">
                 <label for="senha-admin">Senha de Acesso:</label>
-                <input type="password" id="senha-admin" placeholder="Digite a senha">
+                <input type="password" id="senha-admin">
             </div>
             <button class="btn" onclick="verificarSenha()">Entrar</button>
         </div>
         <div id="tabela-resultados" style="display:none;">
-            <div style="max-height: 280px; overflow-y: auto;">
-                <table id="tabela-dados">
-                    <thead>
-                        <tr>
-                            <th>Posto/Grad</th>
-                            <th>Matrícula</th>
-                            <th>Nome Completo</th>
-                            <th>1ª Opção</th>
-                            <th>2ª Opção</th>
-                            <th>3ª Opção</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div class="admin-tabs">
+                <button id="tab-btn-ativos" class="admin-tab-btn active" onclick="alternarAbaAdmin('ativos')">
+                    📋 Respostas Ativas (<span id="count-ativos">0</span>)
+                </button>
+                <button id="tab-btn-lixeira" class="admin-tab-btn" onclick="alternarAbaAdmin('lixeira')">
+                    🗑️ Lixeira (<span id="count-lixeira">0</span>)
+                </button>
             </div>
-            <button class="btn" style="margin-top: 15px; background-color: #27ae60;" onclick="exportarCSV()">Exportar para CSV (Excel)</button>
+
+            <!-- ABA: RESPOSTAS ATIVAS -->
+            <div id="aba-ativos">
+                <div style="max-height: 320px; overflow-y: auto;">
+                    <table id="tabela-dados">
+                        <thead>
+                            <tr>
+                                <th>Posto/Grad</th>
+                                <th>Matrícula</th>
+                                <th>Nome Completo</th>
+                                <th>1ª Opção</th>
+                                <th>2ª Opção</th>
+                                <th>3ª Opção</th>
+                                <th style="text-align:center;">Excluir</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <button class="btn" style="flex: 1; background-color: #27ae60;" onclick="exportarCSV()">Exportar para CSV (Excel)</button>
+                    <button class="btn" style="flex: 1; background-color: #c0392b;" onclick="exportarPDF()">Exportar Relatório em PDF</button>
+                </div>
+            </div>
+
+            <!-- ABA: LIXEIRA -->
+            <div id="aba-lixeira" style="display:none;">
+                <div style="max-height: 320px; overflow-y: auto;">
+                    <table id="tabela-lixeira">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Militar</th>
+                                <th>Conteúdo Excluído</th>
+                                <th>Data/Hora</th>
+                                <th style="text-align:center;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <button class="btn" style="margin-top: 15px; background-color: #7f1d1d;" onclick="esvaziarLixeira()">🗑️ Esvaziar Lixeira Permanentemente</button>
+            </div>
         </div>
         <a href="#" class="back-link" onclick="voltarParaLogin()">Sair do Painel</a>
     </div>
@@ -342,13 +455,29 @@
 
     let militarAtual = { posto: "", matricula: "", nome: "" };
 
+    function formatarMatricula(input) {
+        let digitos = input.value.replace(/\D/g, '').slice(0, 7);
+        if (digitos.length > 6) {
+            input.value = digitos.replace(/^(\d{3})(\d{3})(\d{1})$/, '$1.$2-$3');
+        } else if (digitos.length > 3) {
+            input.value = digitos.replace(/^(\d{3})(\d{1,3})$/, '$1.$2');
+        } else {
+            input.value = digitos;
+        }
+    }
+
     function avancarParaOpcoes() {
         const posto = document.getElementById('posto').value;
         const mat = document.getElementById('matricula').value.trim();
-        const nome = document.getElementById('nome').value.trim();
+        const nome = document.getElementById('nome').value.trim().toUpperCase();
 
         if(!posto || !mat || !nome) {
             alert('Por favor, preencha todos os campos de identificação (Posto, Matrícula e Nome).');
+            return;
+        }
+
+        if(!/^\d{3}\.\d{3}-\d{1}$/.test(mat)) {
+            alert('Por favor, digite os 7 números da matrícula no formato 000.000-0 (Ex: 138.829-7).');
             return;
         }
 
@@ -414,6 +543,12 @@
     function mudarTela(idTela) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(idTela).classList.add('active');
+        const container = document.querySelector('.container');
+        if (idTela === 'screen-admin') {
+            container.classList.add('admin-wide');
+        } else {
+            container.classList.remove('admin-wide');
+        }
     }
 
     function voltarParaLogin() {
@@ -423,7 +558,31 @@
         mudarTela('screen-login');
     }
 
-    function enviarFormulario() {
+    let registrosCache = JSON.parse(localStorage.getItem('ferias_15cia_2027_completo') || '[]');
+    let lixeiraCache = JSON.parse(localStorage.getItem('lixeira_15cia_2027') || '[]');
+    let unsubscribeSnapshot = null;
+    let unsubscribeLixeira = null;
+
+    function alternarAbaAdmin(aba) {
+        const btnAtivos = document.getElementById('tab-btn-ativos');
+        const btnLixeira = document.getElementById('tab-btn-lixeira');
+        const divAtivos = document.getElementById('aba-ativos');
+        const divLixeira = document.getElementById('aba-lixeira');
+
+        if (aba === 'lixeira') {
+            btnAtivos.classList.remove('active');
+            btnLixeira.classList.add('active');
+            divAtivos.style.display = 'none';
+            divLixeira.style.display = 'block';
+        } else {
+            btnLixeira.classList.remove('active');
+            btnAtivos.classList.add('active');
+            divLixeira.style.display = 'none';
+            divAtivos.style.display = 'block';
+        }
+    }
+
+    async function enviarFormulario() {
         let escolhas = [];
 
         for(let i = 1; i <= 3; i++) {
@@ -449,19 +608,32 @@
             escolhas.push(textoOpcao);
         }
 
+        const novoRegistro = {
+            posto: String(militarAtual.posto).slice(0, 30),
+            matricula: String(militarAtual.matricula).slice(0, 30),
+            nome: String(militarAtual.nome).slice(0, 150),
+            opt1: String(escolhas[0]).slice(0, 200),
+            opt2: String(escolhas[1]).slice(0, 200),
+            opt3: String(escolhas[2]).slice(0, 200),
+            updatedAt: new Date().toISOString()
+        };
+
         let registros = JSON.parse(localStorage.getItem('ferias_15cia_2027_completo') || '[]');
         registros = registros.filter(r => r.matricula !== militarAtual.matricula);
-
-        registros.push({
-            posto: militarAtual.posto,
-            matricula: militarAtual.matricula,
-            nome: militarAtual.nome,
-            opt1: escolhas[0],
-            opt2: escolhas[1],
-            opt3: escolhas[2]
-        });
-
+        registros.push(novoRegistro);
         localStorage.setItem('ferias_15cia_2027_completo', JSON.stringify(registros));
+        registrosCache = registros;
+
+        if (window.salvarFeriasNoBanco) {
+            try {
+                await window.salvarFeriasNoBanco(novoRegistro);
+            } catch (err) {
+                console.error("Erro ao salvar no banco de dados:", err);
+                alert("Atenção: Ocorreu um erro ao sincronizar com o banco na nuvem. Verifique sua conexão.");
+                return;
+            }
+        }
+
         mudarTela('screen-success');
     }
 
@@ -477,31 +649,241 @@
         if(senha === '15cia2026') {
             document.getElementById('admin-content').style.display = 'none';
             document.getElementById('tabela-resultados').style.display = 'block';
+            alternarAbaAdmin('ativos');
             carregarTabelaDados();
         } else {
             alert('Senha incorreta!');
         }
     }
 
-    function carregarTabelaDados() {
-        let registros = JSON.parse(localStorage.getItem('ferias_15cia_2027_completo') || '[]');
+    function formatarCelulaOpcao(matricula, campo, valor) {
+        const jaExcluida = !valor || valor === '— (Excluída)';
+        const textoSeguro = valor || '—';
+        if (jaExcluida) {
+            return `<div class="opt-cell"><span style="color:#9ca3af; font-style:italic;">${textoSeguro}</span></div>`;
+        }
+        return `
+            <div class="opt-cell">
+                <span>${textoSeguro}</span>
+                <button type="button" class="btn-icon-trash" title="Enviar esta opção para a lixeira" onclick="excluirOpcao('${matricula}', '${campo}')">🗑️</button>
+            </div>
+        `;
+    }
+
+    function renderizarTabela(registros) {
+        registrosCache = registros;
+        const countEl = document.getElementById('count-ativos');
+        if (countEl) countEl.innerText = registros.length;
+
         let tbody = document.querySelector('#tabela-dados tbody');
         tbody.innerHTML = '';
 
         if(registros.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Nenhum registro encontrado no banco de dados.</td></tr>`;
             return;
         }
 
         registros.forEach(r => {
             let tr = document.createElement('tr');
-            tr.innerHTML = `<td>${r.posto}</td><td><b>${r.matricula}</b></td><td>${r.nome}</td><td>${r.opt1}</td><td>${r.opt2}</td><td>${r.opt3}</td>`;
+            tr.innerHTML = `
+                <td>${r.posto}</td>
+                <td><b>${r.matricula}</b></td>
+                <td>${r.nome}</td>
+                <td>${formatarCelulaOpcao(r.matricula, 'opt1', r.opt1)}</td>
+                <td>${formatarCelulaOpcao(r.matricula, 'opt2', r.opt2)}</td>
+                <td>${formatarCelulaOpcao(r.matricula, 'opt3', r.opt3)}</td>
+                <td style="text-align:center;">
+                    <button type="button" class="btn-icon-trash" title="Mover militar inteiro para a lixeira" onclick="excluirRegistro('${r.matricula}')">🗑️</button>
+                </td>
+            `;
             tbody.appendChild(tr);
         });
     }
 
+    function renderizarLixeira(itensLixeira) {
+        lixeiraCache = itensLixeira;
+        const countEl = document.getElementById('count-lixeira');
+        if (countEl) countEl.innerText = itensLixeira.length;
+
+        let tbody = document.querySelector('#tabela-lixeira tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (itensLixeira.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">A lixeira está vazia.</td></tr>`;
+            return;
+        }
+
+        itensLixeira.forEach(item => {
+            const labelTipo = item.tipo === 'opcao'
+                ? `Opção (${item.campo === 'opt1' ? '1ª Opção' : item.campo === 'opt2' ? '2ª Opção' : '3ª Opção'})`
+                : 'Ficha Completa';
+
+            const conteudo = item.tipo === 'opcao'
+                ? item.valorOriginal
+                : `1ª: ${item.opt1} | 2ª: ${item.opt2} | 3ª: ${item.opt3}`;
+
+            const dataFmt = item.deletedAt ? new Date(item.deletedAt).toLocaleString('pt-BR') : '-';
+
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><b>${labelTipo}</b></td>
+                <td>${item.posto} <b>${item.matricula}</b> - ${item.nome}</td>
+                <td>${conteudo}</td>
+                <td>${dataFmt}</td>
+                <td style="text-align:center; white-space:nowrap;">
+                    <button type="button" class="btn-icon-restore" title="Restaurar item" onclick="restaurarDaLixeira('${item.id}')">♻️ Restaurar</button>
+                    <button type="button" class="btn-icon-trash" title="Excluir permanentemente" onclick="excluirPermanenteDaLixeira('${item.id}')">🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function excluirOpcao(matricula, campo) {
+        const reg = registrosCache.find(r => r.matricula === matricula);
+        if (!reg) return;
+
+        const nomeOpcao = campo === 'opt1' ? '1ª Opção' : campo === 'opt2' ? '2ª Opção' : '3ª Opção';
+        const valorAtual = reg[campo];
+        if (!valorAtual || valorAtual === '— (Excluída)') return;
+
+        const itemLixeira = {
+            id: 'opt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+            tipo: 'opcao',
+            campo: campo,
+            valorOriginal: String(valorAtual).slice(0, 200),
+            posto: String(reg.posto).slice(0, 30),
+            matricula: String(reg.matricula).slice(0, 30),
+            nome: String(reg.nome).slice(0, 150),
+            deletedAt: new Date().toISOString()
+        };
+
+        const registroAtualizado = {
+            posto: String(reg.posto).slice(0, 30),
+            matricula: String(reg.matricula).slice(0, 30),
+            nome: String(reg.nome).slice(0, 150),
+            opt1: String(campo === 'opt1' ? '— (Excluída)' : reg.opt1).slice(0, 200),
+            opt2: String(campo === 'opt2' ? '— (Excluída)' : reg.opt2).slice(0, 200),
+            opt3: String(campo === 'opt3' ? '— (Excluída)' : reg.opt3).slice(0, 200),
+            updatedAt: new Date().toISOString()
+        };
+
+        try {
+            if (window.moverOpcaoParaLixeiraNoBanco) {
+                await window.moverOpcaoParaLixeiraNoBanco(registroAtualizado, itemLixeira);
+            } else {
+                const novos = registrosCache.map(r => r.matricula === matricula ? registroAtualizado : r);
+                localStorage.setItem('ferias_15cia_2027_completo', JSON.stringify(novos));
+                lixeiraCache.push(itemLixeira);
+                localStorage.setItem('lixeira_15cia_2027', JSON.stringify(lixeiraCache));
+                renderizarTabela(novos);
+                renderizarLixeira(lixeiraCache);
+            }
+        } catch (err) {
+            console.error('Erro ao mover opção para lixeira:', err);
+            alert('Erro ao mover a ' + nomeOpcao + ' para a lixeira.');
+        }
+    }
+
+    async function excluirRegistro(matricula) {
+        const reg = registrosCache.find(r => r.matricula === matricula);
+        if (!reg) return;
+
+        const itemLixeira = {
+            id: 'reg_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+            tipo: 'registro',
+            posto: String(reg.posto).slice(0, 30),
+            matricula: String(reg.matricula).slice(0, 30),
+            nome: String(reg.nome).slice(0, 150),
+            opt1: String(reg.opt1).slice(0, 200),
+            opt2: String(reg.opt2).slice(0, 200),
+            opt3: String(reg.opt3).slice(0, 200),
+            deletedAt: new Date().toISOString()
+        };
+
+        try {
+            if (window.moverRegistroParaLixeiraNoBanco) {
+                await window.moverRegistroParaLixeiraNoBanco(matricula, itemLixeira);
+            } else {
+                const novos = registrosCache.filter(r => r.matricula !== matricula);
+                localStorage.setItem('ferias_15cia_2027_completo', JSON.stringify(novos));
+                lixeiraCache.push(itemLixeira);
+                localStorage.setItem('lixeira_15cia_2027', JSON.stringify(lixeiraCache));
+                renderizarTabela(novos);
+                renderizarLixeira(lixeiraCache);
+            }
+        } catch (err) {
+            console.error('Erro ao mover registro para lixeira:', err);
+            alert('Erro ao mover o registro para a lixeira.');
+        }
+    }
+
+    async function restaurarDaLixeira(trashId) {
+        const item = lixeiraCache.find(i => i.id === trashId);
+        if (!item) return;
+
+        try {
+            if (window.restaurarItemDaLixeiraNoBanco) {
+                await window.restaurarItemDaLixeiraNoBanco(item, registrosCache);
+            }
+        } catch (err) {
+            console.error('Erro ao restaurar da lixeira:', err);
+            alert('Erro ao restaurar item da lixeira.');
+        }
+    }
+
+    async function excluirPermanenteDaLixeira(trashId) {
+        try {
+            if (window.excluirItemLixeiraNoBanco) {
+                await window.excluirItemLixeiraNoBanco(trashId);
+            }
+        } catch (err) {
+            console.error('Erro ao excluir item permanentemente:', err);
+        }
+    }
+
+    async function esvaziarLixeira() {
+        if (lixeiraCache.length === 0) {
+            alert('A lixeira já está vazia.');
+            return;
+        }
+        try {
+            if (window.esvaziarLixeiraNoBanco) {
+                await window.esvaziarLixeiraNoBanco(lixeiraCache);
+            }
+        } catch (err) {
+            console.error('Erro ao esvaziar lixeira:', err);
+        }
+    }
+
+    function carregarTabelaDados() {
+        let tbody = document.querySelector('#tabela-dados tbody');
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Carregando respostas do banco de dados...</td></tr>`;
+
+        if (window.escutarFeriasDoBanco) {
+            if (unsubscribeSnapshot) unsubscribeSnapshot();
+            unsubscribeSnapshot = window.escutarFeriasDoBanco((registrosNuvem) => {
+                renderizarTabela(registrosNuvem);
+            });
+        } else {
+            let registros = JSON.parse(localStorage.getItem('ferias_15cia_2027_completo') || '[]');
+            renderizarTabela(registros);
+        }
+
+        if (window.escutarLixeiraDoBanco) {
+            if (unsubscribeLixeira) unsubscribeLixeira();
+            unsubscribeLixeira = window.escutarLixeiraDoBanco((itensNuvem) => {
+                renderizarLixeira(itensNuvem);
+            });
+        } else {
+            let lixeira = JSON.parse(localStorage.getItem('lixeira_15cia_2027') || '[]');
+            renderizarLixeira(lixeira);
+        }
+    }
+
     function exportarCSV() {
-        let registros = JSON.parse(localStorage.getItem('ferias_15cia_2027_completo') || '[]');
+        let registros = registrosCache;
         if(registros.length === 0) { alert('Não há dados para exportar.'); return; }
 
         let csvContent = "data:text/csv;charset=utf-8,PostoGraduacao;Matricula;NomeCompleto;Opcao_1;Opcao_2;Opcao_3\n";
@@ -517,6 +899,239 @@
         link.click();
         document.body.removeChild(link);
     }
+
+    function exportarPDF() {
+        let registros = registrosCache;
+        if(registros.length === 0) { alert('Não há dados para exportar.'); return; }
+
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+            alert('Biblioteca de geração de PDF ainda carregando. Tente novamente em instantes.');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+        doc.setFontSize(14);
+        doc.setTextColor(11, 28, 58);
+        doc.text("POLÍCIA MILITAR DE MINAS GERAIS", 148.5, 14, { align: "center" });
+
+        doc.setFontSize(12);
+        doc.text("15ª COMPANHIA DE POLÍCIA MILITAR INDEPENDENTE", 148.5, 20, { align: "center" });
+
+        doc.setFontSize(11);
+        doc.setTextColor(80, 80, 80);
+        doc.text("RELATÓRIO CONSOLIDADO - PLANO DE FÉRIAS 2027", 148.5, 27, { align: "center" });
+
+        const dataHora = new Date().toLocaleString('pt-BR');
+        doc.setFontSize(9);
+        doc.text(`Gerado em: ${dataHora} | Total de registros: ${registros.length}`, 14, 33);
+
+        const bodyRows = registros.map(r => [
+            r.posto || '',
+            r.matricula || '',
+            r.nome || '',
+            r.opt1 || '',
+            r.opt2 || '',
+            r.opt3 || ''
+        ]);
+
+        doc.autoTable({
+            startY: 36,
+            head: [['Posto/Grad', 'Matrícula', 'Nome Completo', '1ª Opção', '2ª Opção', '3ª Opção']],
+            body: bodyRows,
+            styles: {
+                fontSize: 8,
+                cellPadding: 2.5,
+                valign: 'middle'
+            },
+            headStyles: {
+                fillColor: [11, 28, 58],
+                textColor: [255, 255, 255],
+                fontStyle: 'bold'
+            },
+            alternateRowStyles: {
+                fillColor: [244, 246, 249]
+            },
+            columnStyles: {
+                0: { cellWidth: 22 },
+                1: { cellWidth: 24 },
+                2: { cellWidth: 45 },
+                3: { cellWidth: 60 },
+                4: { cellWidth: 60 },
+                5: { cellWidth: 60 }
+            }
+        });
+
+        doc.save("plano_de_ferias_15cia_2027.pdf");
+    }
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocFromServer } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        projectId: "gen-lang-client-0169436654",
+        appId: "1:761629418676:web:6fee9f169b7060bed823e1",
+        apiKey: "AIzaSyBNg9jvVhV8i1lx1vtDuKEnQLrTV33RoB0",
+        authDomain: "gen-lang-client-0169436654.firebaseapp.com",
+        firestoreDatabaseId: "ai-studio-944266dd-2f65-4d51-8d40-48fc09bbc659",
+        storageBucket: "gen-lang-client-0169436654.firebasestorage.app",
+        messagingSenderId: "761629418676"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+    function handleFirestoreError(error, operationType, path) {
+        const errInfo = {
+            error: error instanceof Error ? error.message : String(error),
+            authInfo: {
+                userId: null,
+                email: null,
+                emailVerified: null,
+                isAnonymous: true,
+                tenantId: null,
+                providerInfo: []
+            },
+            operationType: operationType,
+            path: path
+        };
+        console.error('Firestore Error: ', JSON.stringify(errInfo));
+        throw new Error(JSON.stringify(errInfo));
+    }
+
+    async function testConnection() {
+        try {
+            await getDocFromServer(doc(db, 'ferias_2027', 'connection_test'));
+        } catch (error) {
+            if (error instanceof Error && error.message.includes('the client is offline')) {
+                console.error("Please check your Firebase configuration.");
+            }
+        }
+    }
+    testConnection();
+
+    function formatarDocId(matricula) {
+        const limpo = String(matricula).trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+        return limpo.length > 0 ? limpo.slice(0, 100) : 'militar_' + Date.now();
+    }
+
+    window.salvarFeriasNoBanco = async function(registro) {
+        const docId = formatarDocId(registro.matricula);
+        const path = `ferias_2027/${docId}`;
+        try {
+            await setDoc(doc(db, 'ferias_2027', docId), registro);
+        } catch (error) {
+            handleFirestoreError(error, 'write', path);
+        }
+    };
+
+    window.moverOpcaoParaLixeiraNoBanco = async function(registroAtualizado, itemLixeira) {
+        const docId = formatarDocId(registroAtualizado.matricula);
+        try {
+            await setDoc(doc(db, 'lixeira_2027', itemLixeira.id), itemLixeira);
+            await setDoc(doc(db, 'ferias_2027', docId), registroAtualizado);
+        } catch (error) {
+            handleFirestoreError(error, 'write', `ferias_2027/${docId}`);
+        }
+    };
+
+    window.moverRegistroParaLixeiraNoBanco = async function(matricula, itemLixeira) {
+        const docId = formatarDocId(matricula);
+        try {
+            await setDoc(doc(db, 'lixeira_2027', itemLixeira.id), itemLixeira);
+            await deleteDoc(doc(db, 'ferias_2027', docId));
+        } catch (error) {
+            handleFirestoreError(error, 'delete', `ferias_2027/${docId}`);
+        }
+    };
+
+    window.restaurarItemDaLixeiraNoBanco = async function(item, registrosAtuais) {
+        const docId = formatarDocId(item.matricula);
+        try {
+            if (item.tipo === 'registro') {
+                const restaurado = {
+                    posto: item.posto,
+                    matricula: item.matricula,
+                    nome: item.nome,
+                    opt1: item.opt1 || '—',
+                    opt2: item.opt2 || '—',
+                    opt3: item.opt3 || '—',
+                    updatedAt: new Date().toISOString()
+                };
+                await setDoc(doc(db, 'ferias_2027', docId), restaurado);
+            } else if (item.tipo === 'opcao') {
+                const existente = registrosAtuais.find(r => r.matricula === item.matricula);
+                const restaurado = existente ? {
+                    posto: existente.posto,
+                    matricula: existente.matricula,
+                    nome: existente.nome,
+                    opt1: item.campo === 'opt1' ? item.valorOriginal : existente.opt1,
+                    opt2: item.campo === 'opt2' ? item.valorOriginal : existente.opt2,
+                    opt3: item.campo === 'opt3' ? item.valorOriginal : existente.opt3,
+                    updatedAt: new Date().toISOString()
+                } : {
+                    posto: item.posto,
+                    matricula: item.matricula,
+                    nome: item.nome,
+                    opt1: item.campo === 'opt1' ? item.valorOriginal : '— (Excluída)',
+                    opt2: item.campo === 'opt2' ? item.valorOriginal : '— (Excluída)',
+                    opt3: item.campo === 'opt3' ? item.valorOriginal : '— (Excluída)',
+                    updatedAt: new Date().toISOString()
+                };
+                await setDoc(doc(db, 'ferias_2027', docId), restaurado);
+            }
+            await deleteDoc(doc(db, 'lixeira_2027', item.id));
+        } catch (error) {
+            handleFirestoreError(error, 'write', `lixeira_2027/${item.id}`);
+        }
+    };
+
+    window.excluirItemLixeiraNoBanco = async function(trashId) {
+        try {
+            await deleteDoc(doc(db, 'lixeira_2027', trashId));
+        } catch (error) {
+            handleFirestoreError(error, 'delete', `lixeira_2027/${trashId}`);
+        }
+    };
+
+    window.esvaziarLixeiraNoBanco = async function(itens) {
+        try {
+            for (const item of itens) {
+                await deleteDoc(doc(db, 'lixeira_2027', item.id));
+            }
+        } catch (error) {
+            handleFirestoreError(error, 'delete', 'lixeira_2027');
+        }
+    };
+
+    window.escutarFeriasDoBanco = function(callback) {
+        return onSnapshot(collection(db, 'ferias_2027'), (snapshot) => {
+            const lista = [];
+            snapshot.forEach((docSnap) => {
+                lista.push(docSnap.data());
+            });
+            localStorage.setItem('ferias_15cia_2027_completo', JSON.stringify(lista));
+            callback(lista);
+        }, (error) => {
+            handleFirestoreError(error, 'list', 'ferias_2027');
+        });
+    };
+
+    window.escutarLixeiraDoBanco = function(callback) {
+        return onSnapshot(collection(db, 'lixeira_2027'), (snapshot) => {
+            const lista = [];
+            snapshot.forEach((docSnap) => {
+                lista.push(docSnap.data());
+            });
+            localStorage.setItem('lixeira_15cia_2027', JSON.stringify(lista));
+            callback(lista);
+        }, (error) => {
+            handleFirestoreError(error, 'list', 'lixeira_2027');
+        });
+    };
 </script>
 
 </body>
