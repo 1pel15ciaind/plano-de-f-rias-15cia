@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Férias - 15ª Cia PM Ind</title>
+    <style>
+        :root {
+            --primary-color: #0b1c3a; /* Azul PMMG */
+            --secondary-color: #16325c;
+            --accent-color: #d4af37; /* Dourado */
+            --bg-color: #f4f6f9;
+            --text-color: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 650px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-top: 5px solid var(--accent-color);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header h2 {
+            font-size: 14px;
+            color: #666;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+            font-size: 13px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            background-color: #fff;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-admin {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            margin-top: 15px;
+        }
+
+        .btn-admin:hover {
+            background-color: #f0f4f8;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .option-box {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .option-box h3 {
+            font-size: 14px;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- TELA 1: Identificação com Posto/Graduação, Matrícula e Nome -->
+    <div id="screen-login" class="screen active">
+        <div class="header">
+            <img src="logo.png" alt="Brasão 15ª Cia PM Ind">
+            <h1>Plano de Férias 2027</h1>
+            <h2>15ª Companhia de Polícia Militar Independente</h2>
+        </div>
+        <div class="form-group">
+            <label for="posto">Posto / Graduação:</label>
+            <select id="posto" required>
+                <option value="">-- Selecione o Posto/Graduação --</option>
+                <option value="Maj PM">Maj PM</option>
+                <option value="Cap PM">Cap PM</option>
+                <option value="1º Ten PM">1º Ten PM</option>
+                <option value="2º Ten PM">2º Ten PM</option>
+                <option value="Subten PM">Subten PM</option>
+                <option value="1º Sgt PM">1º Sgt PM</option>
+                <option value="2º Sgt PM">2º Sgt PM</option>
+                <option value="3º Sgt PM">3º Sgt PM</option>
+                <option value="Cb PM">Cb PM</option>
+                <option value="Sd PM">Sd PM</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="matricula">Nº da Matrícula:</label>
+            <input type="text" id="matricula" placeholder="Ex: 123.456-7" required>
+        </div>
+        <div class="form-group">
+            <label for="nome">Nome Completo:</label>
+            <input type="text" id="nome" placeholder="Ex: Soldado Silva Santos" required>
+        </div>
+        <button class="btn" onclick="avancarParaOpcoes()">Acessar Sistema</button>
+        <button class="btn btn-admin" onclick="mostrarPainelAdmin()">Painel do Gestor</button>
+    </div>
+
+    <!-- TELA 2: Escolha de Férias -->
+    <div id="screen-options" class="screen">
+        <div class="header">
+            <h1>Escolha de 3 Opções</h1>
+            <h2 id="display-militar">Militar: </h2>
+        </div>
+
+        <p style="font-size: 12px; color: #555; margin-bottom: 15px; text-align: center;">
+            Para cada opção, escolha <b>25 dias diretos</b> OU monte sua fração livre combinando <b>um bloco de 15 dias</b> e <b>um bloco de 10 dias</b> de quaisquer datas disponíveis.
+        </p>
+
+        <div id="container-opcoes">
+            <!-- Gerado via JavaScript dinamicamente para as 3 Opções -->
+        </div>
+
+        <button class="btn" onclick="enviarFormulario()">Enviar Plano de Férias</button>
+        <a href="#" class="back-link" onclick="voltarParaLogin()">Voltar</a>
+    </div>
+
+    <!-- TELA 3: Confirmação -->
+    <div id="screen-success" class="screen">
+        <div class="header">
+            <h1>Enviado com Sucesso!</h1>
+            <p style="margin-top: 15px; font-size: 14px; color: #555;">Suas 3 opções de férias foram registradas com segurança. O resultado consolidado será verificado exclusivamente pela administração.</p>
+        </div>
+        <button class="btn" onclick="voltarParaLogin()">Finalizar</button>
+    </div>
+
+    <!-- TELA 4: Painel do Gestor (Admin) -->
+    <div id="screen-admin" class="screen">
+        <div class="header">
+            <h1>Painel do Gestor</h1>
+            <h2>Respostas Cadastradas</h2>
+        </div>
+        <div id="admin-content">
+            <div class="form-group">
+                <label for="senha-admin">Senha de Acesso:</label>
+                <input type="password" id="senha-admin" placeholder="Digite a senha">
+            </div>
+            <button class="btn" onclick="verificarSenha()">Entrar</button>
+        </div>
+        <div id="tabela-resultados" style="display:none;">
+            <div style="max-height: 280px; overflow-y: auto;">
+                <table id="tabela-dados">
+                    <thead>
+                        <tr>
+                            <th>Posto/Grad</th>
+                            <th>Matrícula</th>
+                            <th>Nome Completo</th>
+                            <th>1ª Opção</th>
+                            <th>2ª Opção</th>
+                            <th>3ª Opção</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <button class="btn" style="margin-top: 15px; background-color: #27ae60;" onclick="exportarCSV()">Exportar para CSV (Excel)</button>
+        </div>
+        <a href="#" class="back-link" onclick="voltarParaLogin()">Sair do Painel</a>
+    </div>
+</div>
+
+<script>
+    const periodos25 = [
+        "04/01/2027 a 05/02/2027 (25 dias úteis)",
+        "11/02/2027 a 17/03/2027 (25 dias úteis)",
+        "17/03/2027 a 23/04/2027 (25 dias úteis)",
+        "26/04/2027 a 01/06/2027 (25 dias úteis)",
+        "02/06/2027 a 06/07/2027 (25 dias úteis)",
+        "07/07/2027 a 10/08/2027 (25 dias úteis)",
+        "11/08/2027 a 15/09/2027 (25 dias úteis)",
+        "15/09/2027 a 20/10/2027 (25 dias úteis)",
+        "21/10/2027 a 26/11/2027 (25 dias úteis)",
+        "29/11/2027 a 31/12/2027 (25 dias úteis)"
+    ];
+
+    const blocos15 = [
+        "04/01/2027 a 22/01/2027 (15 dias)",
+        "18/01/2027 a 05/02/2027 (15 dias)",
+        "11/02/2027 a 03/03/2027 (15 dias)",
+        "25/02/2027 a 17/03/2027 (15 dias)",
+        "17/03/2027 a 08/04/2027 (15 dias)",
+        "02/04/2027 a 23/04/2027 (15 dias)",
+        "26/04/2027 a 14/05/2027 (15 dias)",
+        "10/05/2027 a 01/06/2027 (15 dias)",
+        "02/06/2027 a 22/06/2027 (15 dias)",
+        "16/06/2027 a 06/07/2027 (15 dias)",
+        "07/07/2027 a 27/07/2027 (15 dias)",
+        "21/07/2027 a 10/08/2027 (15 dias)",
+        "11/08/2027 a 31/08/2027 (15 dias)",
+        "25/08/2027 a 15/09/2027 (15 dias)",
+        "15/09/2027 a 05/10/2027 (15 dias)",
+        "29/09/2027 a 20/10/2027 (15 dias)",
+        "21/10/2027 a 11/11/2027 (15 dias)",
+        "05/11/2027 a 26/11/2027 (15 dias)",
+        "29/11/2027 a 17/12/2027 (15 dias)",
+        "13/12/2027 a 31/12/2027 (15 dias)"
+    ];
+
+    const blocos10 = [
+        "25/01/2027 a 05/02/2027 (10 dias)",
+        "04/01/2027 a 15/01/2027 (10 dias)",
+        "04/03/2027 a 17/03/2027 (10 dias)",
+        "11/02/2027 a 24/02/2027 (10 dias)",
+        "09/04/2027 a 23/04/2027 (10 dias)",
+        "17/03/2027 a 01/04/2027 (10 dias)",
+        "17/05/2027 a 01/06/2027 (10 dias)",
+        "26/04/2027 a 07/05/2027 (10 dias)",
+        "23/06/2027 a 06/07/2027 (10 dias)",
+        "02/06/2027 a 15/06/2027 (10 dias)",
+        "28/07/2027 a 10/08/2027 (10 dias)",
+        "07/07/2027 a 20/07/2027 (10 dias)",
+        "01/09/2027 a 15/09/2027 (10 dias)",
+        "11/08/2027 a 24/08/2027 (10 dias)",
+        "06/10/2027 a 20/10/2027 (10 dias)",
+        "15/09/2027 a 28/09/2027 (10 dias)",
+        "12/11/2027 a 26/11/2027 (10 dias)",
+        "21/10/2027 a 04/11/2027 (10 dias)",
+        "20/12/2027 a 31/12/2027 (10 dias)",
+        "29/11/2027 a 10/12/2027 (10 dias)"
+    ];
+
+    let militarAtual = { posto: "", matricula: "", nome: "" };
+
+    function avancarParaOpcoes() {
+        const posto = document.getElementById('posto').value;
+        const mat = document.getElementById('matricula').value.trim();
+        const nome = document.getElementById('nome').value.trim();
+
+        if(!posto || !mat || !nome) {
+            alert('Por favor, preencha todos os campos de identificação (Posto, Matrícula e Nome).');
+            return;
+        }
+
+        militarAtual = { posto: posto, matricula: mat, nome: nome };
+        document.getElementById('display-militar').innerText = `${posto} ${nome} (Mat: ${mat})`;
+        
+        gerarCamposOpcoes();
+        mudarTela('screen-options');
+    }
+
+    function gerarCamposOpcoes() {
+        const container = document.getElementById('container-opcoes');
+        container.innerHTML = '';
+
+        let opts25Html = '<option value="">-- Selecione período de 25 dias úteis --</option>';
+        periodos25.forEach(p => opts25Html += `<option value="${p}">${p}</option>`);
+
+        let opts15Html = '<option value="">-- Selecione bloco de 15 dias úteis --</option>';
+        blocos15.forEach(b => opts15Html += `<option value="${b}">${b}</option>`);
+
+        let opts10Html = '<option value="">-- Selecione bloco de 10 dias úteis --</option>';
+        blocos10.forEach(b => opts10Html += `<option value="${b}">${b}</option>`);
+
+        for(let i = 1; i <= 3; i++) {
+            container.innerHTML += `
+                <div class="option-box">
+                    <h3>${i}ª Opção de Férias</h3>
+                    <div class="form-group">
+                        <label>Tipo de Escolha:</label>
+                        <select id="tipo-${i}" onchange="mudarTipoOpcao(${i})">
+                            <option value="25">25 Dias Úteis (Direto)</option>
+                            <option value="15-10">15 Dias + 10 Dias Úteis</option>
+                        </select>
+                    </div>
+                    <div id="bloco-25-${i}" class="form-group" style="margin-bottom:0;">
+                        <label>Período:</label>
+                        <select id="val-25-${i}">${opts25Html}</select>
+                    </div>
+                    <div id="bloco-fracionado-${i}" class="form-group" style="display:none; margin-bottom:0;">
+                        <label>1º Bloco (15 Dias):</label>
+                        <select id="val-15-${i}" style="margin-bottom:8px;">${opts15Html}</select>
+                        <label>2º Bloco (10 Dias):</label>
+                        <select id="val-10-${i}">${opts10Html}</select>
+                    </div>
+                </div>`;
+        }
+    }
+
+    function mudarTipoOpcao(i) {
+        const tipo = document.getElementById(`tipo-${i}`).value;
+        const div25 = document.getElementById(`bloco-25-${i}`);
+        const divFrac = document.getElementById(`bloco-fracionado-${i}`);
+
+        if(tipo === '25') {
+            div25.style.display = 'block';
+            divFrac.style.display = 'none';
+        } else {
+            div25.style.display = 'none';
+            divFrac.style.display = 'block';
+        }
+    }
+
+    function mudarTela(idTela) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(idTela).classList.add('active');
+    }
+
+    function voltarParaLogin() {
+        document.getElementById('posto').value = '';
+        document.getElementById('matricula').value = '';
+        document.getElementById('nome').value = '';
+        mudarTela('screen-login');
+    }
+
+    function enviarFormulario() {
+        let escolhas = [];
+
+        for(let i = 1; i <= 3; i++) {
+            let tipo = document.getElementById(`tipo-${i}`).value;
+            let textoOpcao = "";
+
+            if(tipo === '25') {
+                let val = document.getElementById(`val-25-${i}`).value;
+                if(!val) {
+                    alert(`Preencha a ${i}ª Opção (25 dias).`);
+                    return;
+                }
+                textoOpcao = `[25d] ${val}`;
+            } else {
+                let v15 = document.getElementById(`val-15-${i}`).value;
+                let v10 = document.getElementById(`val-10-${i}`).value;
+                if(!v15 || !v10) {
+                    alert(`Preencha ambos os blocos (15d + 10d) da ${i}ª Opção.`);
+                    return;
+                }
+                textoOpcao = `[15d+10d] 1º: ${v15} | 2º: ${v10}`;
+            }
+            escolhas.push(textoOpcao);
+        }
+
+        let registros = JSON.parse(localStorage.getItem('ferias_15cia_2027_completo') || '[]');
+        registros = registros.filter(r => r.matricula !== militarAtual.matricula);
+
+        registros.push({
+            posto: militarAtual.posto,
+            matricula: militarAtual.matricula,
+            nome: militarAtual.nome,
+            opt1: escolhas[0],
+            opt2: escolhas[1],
+            opt3: escolhas[2]
+        });
+
+        localStorage.setItem('ferias_15cia_2027_completo', JSON.stringify(registros));
+        mudarTela('screen-success');
+    }
+
+    function mostrarPainelAdmin() {
+        document.getElementById('senha-admin').value = '';
+        document.getElementById('tabela-resultados').style.display = 'none';
+        document.getElementById('admin-content').style.display = 'block';
+        mudarTela('screen-admin');
+    }
+
+    function verificarSenha() {
+        const senha = document.getElementById('senha-admin').value;
+        if(senha === '15cia2026') {
+            document.getElementById('admin-content').style.display = 'none';
+            document.getElementById('tabela-resultados').style.display = 'block';
+            carregarTabelaDados();
+        } else {
+            alert('Senha incorreta!');
+        }
+    }
+
+    function carregarTabelaDados() {
+        let registros = JSON.parse(localStorage.getItem('ferias_15cia_2027_completo') || '[]');
+        let tbody = document.querySelector('#tabela-dados tbody');
+        tbody.innerHTML = '';
+
+        if(registros.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
+            return;
+        }
+
+        registros.forEach(r => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `<td>${r.posto}</td><td><b>${r.matricula}</b></td><td>${r.nome}</td><td>${r.opt1}</td><td>${r.opt2}</td><td>${r.opt3}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function exportarCSV() {
+        let registros = JSON.parse(localStorage.getItem('ferias_15cia_2027_completo') || '[]');
+        if(registros.length === 0) { alert('Não há dados para exportar.'); return; }
+
+        let csvContent = "data:text/csv;charset=utf-8,PostoGraduacao;Matricula;NomeCompleto;Opcao_1;Opcao_2;Opcao_3\n";
+        registros.forEach(r => {
+            csvContent += `"${r.posto}","${r.matricula}","${r.nome}","${r.opt1}","${r.opt2}","${r.opt3}"\n`;
+        });
+
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "plano_de_ferias_15cia_2027.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html>
