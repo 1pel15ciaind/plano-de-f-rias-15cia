@@ -163,13 +163,36 @@
         }
 
         .avail-list {
-            max-height: 175px;
+            max-height: 260px;
             overflow-y: auto;
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 6px;
             padding: 6px;
-            font-size: 11px;
+            font-size: 12px;
+            transition: max-height 0.3s ease;
+        }
+
+        .avail-list.expanded {
+            max-height: none;
+        }
+
+        .btn-pdf-avail {
+            background-color: #1e40af;
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-pdf-avail:hover {
+            background-color: #1e3a8a;
         }
 
         .avail-item {
@@ -440,6 +463,7 @@
             <input type="text" id="nome" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" required>
         </div>
         <button class="btn" onclick="avancarParaOpcoes()">Acessar Sistema</button>
+        <button type="button" class="btn-pdf-avail" style="margin-top: 12px;" onclick="exportarPDFDisponibilidade()">📄 Baixar PDF: Períodos Disponíveis e Escolhidos</button>
         <button class="btn btn-admin" onclick="mostrarPainelAdmin()">Painel do Gestor</button>
     </div>
 
@@ -459,10 +483,13 @@
         <div class="avail-box">
             <div class="avail-header">
                 <span class="avail-title">📅 Consulta de Períodos Disponíveis</span>
-                <label style="font-size: 11px; margin: 0; display: flex; align-items: center; gap: 4px; cursor: pointer; font-weight: normal; color: #334155;">
-                    <input type="checkbox" id="chk-apenas-livres" style="width: auto; padding: 0;" onchange="renderizarDisponibilidade()">
-                    Mostrar apenas períodos livres
-                </label>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <label style="font-size: 11px; margin: 0; display: flex; align-items: center; gap: 4px; cursor: pointer; font-weight: normal; color: #334155;">
+                        <input type="checkbox" id="chk-apenas-livres" style="width: auto; padding: 0;" onchange="renderizarDisponibilidade()">
+                        Apenas livres
+                    </label>
+                    <button type="button" id="btn-expandir-avail" style="font-size: 11px; padding: 3px 8px; border: 1px solid #94a3b8; border-radius: 4px; background: #fff; color: #0b1c3a; cursor: pointer; font-weight: bold;" onclick="alternarExpansaoDisponibilidade()">🔍 Expandir Lista</button>
+                </div>
             </div>
             <div class="avail-tabs">
                 <button type="button" id="avail-tab-25" class="avail-tab active" onclick="mudarAbaDisponibilidade('25')">25 Dias Úteis</button>
@@ -470,6 +497,7 @@
                 <button type="button" id="avail-tab-10" class="avail-tab" onclick="mudarAbaDisponibilidade('10')">Blocos de 10 Dias</button>
             </div>
             <div id="lista-disponibilidade" class="avail-list"></div>
+            <button type="button" class="btn-pdf-avail" onclick="exportarPDFDisponibilidade()">📄 Gerar Relatório PDF (Períodos Disponíveis e Escolhidos)</button>
         </div>
 
         <div id="container-opcoes">
@@ -533,8 +561,9 @@
                     </table>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                    <button class="btn" style="flex: 1; background-color: #27ae60;" onclick="exportarCSV()">Exportar para CSV (Excel)</button>
-                    <button class="btn" style="flex: 1; background-color: #c0392b;" onclick="exportarPDF()">Exportar Relatório em PDF</button>
+                    <button class="btn" style="flex: 1; background-color: #27ae60; font-size: 13px; padding: 12px;" onclick="exportarCSV()">Exportar CSV (Excel)</button>
+                    <button class="btn" style="flex: 1; background-color: #c0392b; font-size: 13px; padding: 12px;" onclick="exportarPDF()">PDF: Respostas Cadastradas</button>
+                    <button class="btn" style="flex: 1; background-color: #1e40af; font-size: 13px; padding: 12px;" onclick="exportarPDFDisponibilidade()">PDF: Períodos Disponíveis e Escolhidos</button>
                 </div>
             </div>
 
@@ -698,6 +727,14 @@
         document.getElementById('avail-tab-15').classList.toggle('active', aba === '15');
         document.getElementById('avail-tab-10').classList.toggle('active', aba === '10');
         renderizarDisponibilidade();
+    }
+
+    function alternarExpansaoDisponibilidade() {
+        const lista = document.getElementById('lista-disponibilidade');
+        const btn = document.getElementById('btn-expandir-avail');
+        if (!lista || !btn) return;
+        const expandido = lista.classList.toggle('expanded');
+        btn.innerText = expandido ? '🔼 Recolher Lista' : '🔍 Expandir Lista';
     }
 
     function renderizarDisponibilidade() {
@@ -1310,6 +1347,155 @@
         });
 
         doc.save("plano_de_ferias_15cia_2027.pdf");
+    }
+
+    function exportarPDFDisponibilidade() {
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+            alert('Biblioteca de geração de PDF ainda carregando. Tente novamente em instantes.');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        doc.setFontSize(13);
+        doc.setTextColor(11, 28, 58);
+        doc.text("POLÍCIA MILITAR DE MINAS GERAIS", 105, 13, { align: "center" });
+
+        doc.setFontSize(11);
+        doc.text("15ª COMPANHIA DE POLÍCIA MILITAR INDEPENDENTE - 1º PELOTÃO", 105, 19, { align: "center" });
+
+        doc.setFontSize(10);
+        doc.setTextColor(60, 60, 60);
+        doc.text("RELATÓRIO DE PERÍODOS DISPONÍVEIS E ESCOLHIDOS - PLANO DE FÉRIAS 2027", 105, 25, { align: "center" });
+
+        const dataHora = new Date().toLocaleString('pt-BR');
+        doc.setFontSize(8.5);
+        doc.text(`Gerado em: ${dataHora} | Militares que já responderam: ${registrosCache.length}`, 14, 31);
+
+        function montarLinhasPeriodo(listaPeriodos) {
+            return listaPeriodos.map(p => {
+                const quem = obterEscolhasDoPeriodo(p);
+                const livre = quem.length === 0;
+                return [
+                    p,
+                    livre ? 'DISPONÍVEL (LIVRE)' : `JÁ ESCOLHIDO (${quem.length}x)`,
+                    livre ? 'Nenhum militar escolheu este período ainda' : quem.join(' | ')
+                ];
+            });
+        }
+
+        function estilizarCelulaStatus(data) {
+            if (data.section === 'body' && data.column.index === 1) {
+                const txt = String(data.cell.raw || '');
+                if (txt.includes('DISPONÍVEL')) {
+                    data.cell.styles.fillColor = [220, 252, 231];
+                    data.cell.styles.textColor = [22, 101, 52];
+                    data.cell.styles.fontStyle = 'bold';
+                } else {
+                    data.cell.styles.fillColor = [254, 243, 199];
+                    data.cell.styles.textColor = [146, 64, 14];
+                    data.cell.styles.fontStyle = 'bold';
+                }
+            }
+        }
+
+        // TABELA 1: 25 DIAS ÚTEIS
+        doc.setFontSize(10);
+        doc.setTextColor(11, 28, 58);
+        doc.text("1. PERÍODOS DE 25 DIAS ÚTEIS (DIRETO)", 14, 37);
+
+        doc.autoTable({
+            startY: 39,
+            head: [['Período (25 Dias Úteis)', 'Situação', 'Militares que Escolheram (1ª, 2ª ou 3ª Opção)']],
+            body: montarLinhasPeriodo(periodos25),
+            styles: { fontSize: 7.5, cellPadding: 2, valign: 'middle' },
+            headStyles: { fillColor: [11, 28, 58], textColor: [255, 255, 255], fontStyle: 'bold' },
+            columnStyles: {
+                0: { cellWidth: 58 },
+                1: { cellWidth: 36 },
+                2: { cellWidth: 88 }
+            },
+            didParseCell: estilizarCelulaStatus
+        });
+
+        // TABELA 2: BLOCOS DE 15 DIAS
+        let nextY = doc.lastAutoTable.finalY + 7;
+        if (nextY > 250) { doc.addPage(); nextY = 15; }
+        doc.setFontSize(10);
+        doc.setTextColor(11, 28, 58);
+        doc.text("2. BLOCOS DE 15 DIAS ÚTEIS (FRACIONADO)", 14, nextY);
+
+        doc.autoTable({
+            startY: nextY + 2,
+            head: [['Bloco de 15 Dias', 'Situação', 'Militares que Escolheram (1ª, 2ª ou 3ª Opção)']],
+            body: montarLinhasPeriodo(blocos15),
+            styles: { fontSize: 7.5, cellPadding: 2, valign: 'middle' },
+            headStyles: { fillColor: [22, 50, 92], textColor: [255, 255, 255], fontStyle: 'bold' },
+            columnStyles: {
+                0: { cellWidth: 58 },
+                1: { cellWidth: 36 },
+                2: { cellWidth: 88 }
+            },
+            didParseCell: estilizarCelulaStatus
+        });
+
+        // TABELA 3: BLOCOS DE 10 DIAS
+        nextY = doc.lastAutoTable.finalY + 7;
+        if (nextY > 250) { doc.addPage(); nextY = 15; }
+        doc.setFontSize(10);
+        doc.setTextColor(11, 28, 58);
+        doc.text("3. BLOCOS DE 10 DIAS ÚTEIS (FRACIONADO)", 14, nextY);
+
+        doc.autoTable({
+            startY: nextY + 2,
+            head: [['Bloco de 10 Dias', 'Situação', 'Militares que Escolheram (1ª, 2ª ou 3ª Opção)']],
+            body: montarLinhasPeriodo(blocos10),
+            styles: { fontSize: 7.5, cellPadding: 2, valign: 'middle' },
+            headStyles: { fillColor: [22, 50, 92], textColor: [255, 255, 255], fontStyle: 'bold' },
+            columnStyles: {
+                0: { cellWidth: 58 },
+                1: { cellWidth: 36 },
+                2: { cellWidth: 88 }
+            },
+            didParseCell: estilizarCelulaStatus
+        });
+
+        // TABELA 4: RESUMO DAS ESCOLHAS POR MILITAR
+        if (registrosCache.length > 0) {
+            doc.addPage('a4', 'landscape');
+            doc.setFontSize(12);
+            doc.setTextColor(11, 28, 58);
+            doc.text("RELAÇÃO DE ESCOLHAS CADASTRADAS POR MILITAR - PLANO DE FÉRIAS 2027", 148.5, 15, { align: "center" });
+
+            const bodyMilitares = registrosCache.map(r => [
+                r.posto || '',
+                r.matricula || '',
+                r.nome || '',
+                r.opt1 || '',
+                r.opt2 || '',
+                r.opt3 || ''
+            ]);
+
+            doc.autoTable({
+                startY: 20,
+                head: [['Posto/Grad', 'Matrícula', 'Nome Completo', '1ª Opção', '2ª Opção', '3ª Opção']],
+                body: bodyMilitares,
+                styles: { fontSize: 7.5, cellPadding: 2.2, valign: 'middle' },
+                headStyles: { fillColor: [11, 28, 58], textColor: [255, 255, 255], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [244, 246, 249] },
+                columnStyles: {
+                    0: { cellWidth: 22 },
+                    1: { cellWidth: 24 },
+                    2: { cellWidth: 45 },
+                    3: { cellWidth: 60 },
+                    4: { cellWidth: 60 },
+                    5: { cellWidth: 60 }
+                }
+            });
+        }
+
+        doc.save("periodos_disponiveis_e_escolhidos_15cia_2027.pdf");
     }
 </script>
 
