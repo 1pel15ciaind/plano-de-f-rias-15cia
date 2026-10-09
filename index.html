@@ -115,6 +115,148 @@
             border-color: var(--primary-color);
         }
 
+        .avail-box {
+            background: #f0f4f8;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 18px;
+        }
+
+        .avail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .avail-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .avail-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .avail-tab {
+            flex: 1;
+            padding: 6px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #334155;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .avail-tab.active {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+
+        .avail-list {
+            max-height: 175px;
+            overflow-y: auto;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px;
+            font-size: 11px;
+        }
+
+        .avail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 6px;
+            border-bottom: 1px solid #f1f5f9;
+            gap: 8px;
+        }
+
+        .avail-item:last-child {
+            border-bottom: none;
+        }
+
+        .badge-livre {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .badge-ocupado {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 10px;
+            text-align: right;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 28, 58, 0.65);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 380px;
+            border-radius: 10px;
+            padding: 22px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            border-top: 4px solid #dc2626;
+            text-align: center;
+        }
+
+        .modal-card h3 {
+            font-size: 16px;
+            color: var(--primary-color);
+            margin-bottom: 6px;
+        }
+
+        .modal-card p {
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 14px;
+        }
+
+        .modal-error {
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 6px;
+            margin-bottom: 8px;
+            display: none;
+        }
+
         .header {
             text-align: center;
             margin-bottom: 25px;
@@ -313,6 +455,23 @@
             Para cada opção, escolha <b>25 dias diretos</b> OU monte sua fração livre combinando <b>um bloco de 15 dias</b> e <b>um bloco de 10 dias</b> de quaisquer datas disponíveis.
         </p>
 
+        <!-- PAINEL DE DISPONIBILIDADE DE PERÍODOS EM TEMPO REAL -->
+        <div class="avail-box">
+            <div class="avail-header">
+                <span class="avail-title">📅 Consulta de Períodos Disponíveis</span>
+                <label style="font-size: 11px; margin: 0; display: flex; align-items: center; gap: 4px; cursor: pointer; font-weight: normal; color: #334155;">
+                    <input type="checkbox" id="chk-apenas-livres" style="width: auto; padding: 0;" onchange="renderizarDisponibilidade()">
+                    Mostrar apenas períodos livres
+                </label>
+            </div>
+            <div class="avail-tabs">
+                <button type="button" id="avail-tab-25" class="avail-tab active" onclick="mudarAbaDisponibilidade('25')">25 Dias Úteis</button>
+                <button type="button" id="avail-tab-15" class="avail-tab" onclick="mudarAbaDisponibilidade('15')">Blocos de 15 Dias</button>
+                <button type="button" id="avail-tab-10" class="avail-tab" onclick="mudarAbaDisponibilidade('10')">Blocos de 10 Dias</button>
+            </div>
+            <div id="lista-disponibilidade" class="avail-list"></div>
+        </div>
+
         <div id="container-opcoes">
             <!-- Gerado via JavaScript dinamicamente para as 3 Opções -->
         </div>
@@ -399,6 +558,20 @@
             </div>
         </div>
         <a href="#" class="back-link" onclick="voltarParaLogin()">Sair do Painel</a>
+    </div>
+</div>
+
+<!-- MODAL DE SENHA EXCLUSIVA PARA EXCLUSÃO -->
+<div id="modal-senha-exclusao" class="modal-overlay">
+    <div class="modal-card">
+        <h3>🔒 Senha de Exclusão</h3>
+        <p>Esta ação é restrita ao administrador. Digite a senha exclusiva de exclusão para continuar:</p>
+        <input type="password" id="input-senha-exclusao" onkeydown="if(event.key==='Enter') confirmarSenhaExclusao()">
+        <div id="erro-senha-exclusao" class="modal-error">Senha incorreta! Apenas o administrador pode excluir.</div>
+        <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn" style="flex: 1; padding: 10px; font-size: 13px; background-color: #64748b;" onclick="fecharModalExclusao()">Cancelar</button>
+            <button type="button" class="btn" style="flex: 1; padding: 10px; font-size: 13px; background-color: #dc2626;" onclick="confirmarSenhaExclusao()">Confirmar</button>
+        </div>
     </div>
 </div>
 
@@ -494,7 +667,80 @@
         document.getElementById('display-militar').innerText = `${posto} ${nome} (Mat: ${mat})`;
         
         gerarCamposOpcoes();
+        renderizarDisponibilidade();
         mudarTela('screen-options');
+    }
+
+    let abaDisponibilidadeAtual = '25';
+
+    function obterEscolhasDoPeriodo(periodoStr) {
+        const escolhas = [];
+        const trechoData = periodoStr.split(' (')[0];
+        registrosCache.forEach(r => {
+            const partesNome = (r.nome || '').trim().split(/\s+/);
+            const nomeExibicao = partesNome.slice(0, 2).join(' ');
+            if (r.opt1 && r.opt1 !== '— (Excluída)' && r.opt1.includes(trechoData)) {
+                escolhas.push(`${r.posto} ${nomeExibicao} (1ª Op)`);
+            }
+            if (r.opt2 && r.opt2 !== '— (Excluída)' && r.opt2.includes(trechoData)) {
+                escolhas.push(`${r.posto} ${nomeExibicao} (2ª Op)`);
+            }
+            if (r.opt3 && r.opt3 !== '— (Excluída)' && r.opt3.includes(trechoData)) {
+                escolhas.push(`${r.posto} ${nomeExibicao} (3ª Op)`);
+            }
+        });
+        return escolhas;
+    }
+
+    function mudarAbaDisponibilidade(aba) {
+        abaDisponibilidadeAtual = aba;
+        document.getElementById('avail-tab-25').classList.toggle('active', aba === '25');
+        document.getElementById('avail-tab-15').classList.toggle('active', aba === '15');
+        document.getElementById('avail-tab-10').classList.toggle('active', aba === '10');
+        renderizarDisponibilidade();
+    }
+
+    function renderizarDisponibilidade() {
+        const container = document.getElementById('lista-disponibilidade');
+        if (!container) return;
+
+        const chkLivres = document.getElementById('chk-apenas-livres');
+        const apenasLivres = chkLivres ? chkLivres.checked : false;
+
+        const listaBase = abaDisponibilidadeAtual === '25' ? periodos25 :
+                          abaDisponibilidadeAtual === '15' ? blocos15 : blocos10;
+
+        let html = '';
+        let countMostrados = 0;
+
+        listaBase.forEach(p => {
+            const quemEscolheu = obterEscolhasDoPeriodo(p);
+            const livre = quemEscolheu.length === 0;
+            if (apenasLivres && !livre) return;
+            countMostrados++;
+
+            if (livre) {
+                html += `
+                    <div class="avail-item">
+                        <span><b>${p}</b></span>
+                        <span class="badge-livre">✅ DISPONÍVEL</span>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="avail-item">
+                        <span>${p}</span>
+                        <span class="badge-ocupado">Escolhido (${quemEscolheu.length}x): ${quemEscolheu.join(', ')}</span>
+                    </div>
+                `;
+            }
+        });
+
+        if (countMostrados === 0) {
+            html = `<div style="text-align:center; padding: 10px; color: #64748b;">Nenhum período totalmente livre nesta categoria.</div>`;
+        }
+
+        container.innerHTML = html;
     }
 
     function gerarCamposOpcoes() {
@@ -502,13 +748,25 @@
         container.innerHTML = '';
 
         let opts25Html = '<option value="">-- Selecione período de 25 dias úteis --</option>';
-        periodos25.forEach(p => opts25Html += `<option value="${p}">${p}</option>`);
+        periodos25.forEach(p => {
+            const quem = obterEscolhasDoPeriodo(p);
+            const statusTxt = quem.length === 0 ? '🟢 [DISPONÍVEL]' : `🟡 [Já escolhido ${quem.length}x]`;
+            opts25Html += `<option value="${p}">${statusTxt} ${p}</option>`;
+        });
 
         let opts15Html = '<option value="">-- Selecione bloco de 15 dias úteis --</option>';
-        blocos15.forEach(b => opts15Html += `<option value="${b}">${b}</option>`);
+        blocos15.forEach(b => {
+            const quem = obterEscolhasDoPeriodo(b);
+            const statusTxt = quem.length === 0 ? '🟢 [DISPONÍVEL]' : `🟡 [Já escolhido ${quem.length}x]`;
+            opts15Html += `<option value="${b}">${statusTxt} ${b}</option>`;
+        });
 
         let opts10Html = '<option value="">-- Selecione bloco de 10 dias úteis --</option>';
-        blocos10.forEach(b => opts10Html += `<option value="${b}">${b}</option>`);
+        blocos10.forEach(b => {
+            const quem = obterEscolhasDoPeriodo(b);
+            const statusTxt = quem.length === 0 ? '🟢 [DISPONÍVEL]' : `🟡 [Já escolhido ${quem.length}x]`;
+            opts10Html += `<option value="${b}">${statusTxt} ${b}</option>`;
+        });
 
         for(let i = 1; i <= 3; i++) {
             container.innerHTML += `
@@ -532,6 +790,38 @@
                         <select id="val-10-${i}">${opts10Html}</select>
                     </div>
                 </div>`;
+        }
+    }
+
+    function atualizarRotulosSelectsOpcoes() {
+        for (let i = 1; i <= 3; i++) {
+            const sel25 = document.getElementById(`val-25-${i}`);
+            if (sel25) {
+                Array.from(sel25.options).forEach(opt => {
+                    if (!opt.value) return;
+                    const quem = obterEscolhasDoPeriodo(opt.value);
+                    const statusTxt = quem.length === 0 ? '🟢 [DISPONÍVEL]' : `🟡 [Já escolhido ${quem.length}x]`;
+                    opt.textContent = `${statusTxt} ${opt.value}`;
+                });
+            }
+            const sel15 = document.getElementById(`val-15-${i}`);
+            if (sel15) {
+                Array.from(sel15.options).forEach(opt => {
+                    if (!opt.value) return;
+                    const quem = obterEscolhasDoPeriodo(opt.value);
+                    const statusTxt = quem.length === 0 ? '🟢 [DISPONÍVEL]' : `🟡 [Já escolhido ${quem.length}x]`;
+                    opt.textContent = `${statusTxt} ${opt.value}`;
+                });
+            }
+            const sel10 = document.getElementById(`val-10-${i}`);
+            if (sel10) {
+                Array.from(sel10.options).forEach(opt => {
+                    if (!opt.value) return;
+                    const quem = obterEscolhasDoPeriodo(opt.value);
+                    const statusTxt = quem.length === 0 ? '🟢 [DISPONÍVEL]' : `🟡 [Já escolhido ${quem.length}x]`;
+                    opt.textContent = `${statusTxt} ${opt.value}`;
+                });
+            }
         }
     }
 
@@ -749,7 +1039,42 @@
         });
     }
 
-    async function excluirOpcao(matricula, campo) {
+    let acaoExclusaoPendente = null;
+
+    function solicitarSenhaExclusao(callbackAcao) {
+        acaoExclusaoPendente = callbackAcao;
+        const modal = document.getElementById('modal-senha-exclusao');
+        const input = document.getElementById('input-senha-exclusao');
+        const erro = document.getElementById('erro-senha-exclusao');
+        input.value = '';
+        erro.style.display = 'none';
+        modal.classList.add('active');
+        setTimeout(() => input.focus(), 50);
+    }
+
+    function fecharModalExclusao() {
+        acaoExclusaoPendente = null;
+        document.getElementById('modal-senha-exclusao').classList.remove('active');
+    }
+
+    async function confirmarSenhaExclusao() {
+        const senhaDigitada = document.getElementById('input-senha-exclusao').value.trim();
+        if (senhaDigitada === 'adminférias27' || senhaDigitada === 'adminferias27') {
+            const acao = acaoExclusaoPendente;
+            fecharModalExclusao();
+            if (acao) await acao();
+        } else {
+            document.getElementById('erro-senha-exclusao').style.display = 'block';
+        }
+    }
+
+    function excluirOpcao(matricula, campo) {
+        solicitarSenhaExclusao(async () => {
+            await executarExclusaoOpcao(matricula, campo);
+        });
+    }
+
+    async function executarExclusaoOpcao(matricula, campo) {
         const reg = registrosCache.find(r => r.matricula === matricula);
         if (!reg) return;
 
@@ -795,7 +1120,13 @@
         }
     }
 
-    async function excluirRegistro(matricula) {
+    function excluirRegistro(matricula) {
+        solicitarSenhaExclusao(async () => {
+            await executarExclusaoRegistro(matricula);
+        });
+    }
+
+    async function executarExclusaoRegistro(matricula) {
         const reg = registrosCache.find(r => r.matricula === matricula);
         if (!reg) return;
 
@@ -828,42 +1159,48 @@
         }
     }
 
-    async function restaurarDaLixeira(trashId) {
-        const item = lixeiraCache.find(i => i.id === trashId);
-        if (!item) return;
+    function restaurarDaLixeira(trashId) {
+        solicitarSenhaExclusao(async () => {
+            const item = lixeiraCache.find(i => i.id === trashId);
+            if (!item) return;
 
-        try {
-            if (window.restaurarItemDaLixeiraNoBanco) {
-                await window.restaurarItemDaLixeiraNoBanco(item, registrosCache);
+            try {
+                if (window.restaurarItemDaLixeiraNoBanco) {
+                    await window.restaurarItemDaLixeiraNoBanco(item, registrosCache);
+                }
+            } catch (err) {
+                console.error('Erro ao restaurar da lixeira:', err);
+                alert('Erro ao restaurar item da lixeira.');
             }
-        } catch (err) {
-            console.error('Erro ao restaurar da lixeira:', err);
-            alert('Erro ao restaurar item da lixeira.');
-        }
+        });
     }
 
-    async function excluirPermanenteDaLixeira(trashId) {
-        try {
-            if (window.excluirItemLixeiraNoBanco) {
-                await window.excluirItemLixeiraNoBanco(trashId);
+    function excluirPermanenteDaLixeira(trashId) {
+        solicitarSenhaExclusao(async () => {
+            try {
+                if (window.excluirItemLixeiraNoBanco) {
+                    await window.excluirItemLixeiraNoBanco(trashId);
+                }
+            } catch (err) {
+                console.error('Erro ao excluir item permanentemente:', err);
             }
-        } catch (err) {
-            console.error('Erro ao excluir item permanentemente:', err);
-        }
+        });
     }
 
-    async function esvaziarLixeira() {
+    function esvaziarLixeira() {
         if (lixeiraCache.length === 0) {
             alert('A lixeira já está vazia.');
             return;
         }
-        try {
-            if (window.esvaziarLixeiraNoBanco) {
-                await window.esvaziarLixeiraNoBanco(lixeiraCache);
+        solicitarSenhaExclusao(async () => {
+            try {
+                if (window.esvaziarLixeiraNoBanco) {
+                    await window.esvaziarLixeiraNoBanco(lixeiraCache);
+                }
+            } catch (err) {
+                console.error('Erro ao esvaziar lixeira:', err);
             }
-        } catch (err) {
-            console.error('Erro ao esvaziar lixeira:', err);
-        }
+        });
     }
 
     function carregarTabelaDados() {
@@ -1141,6 +1478,15 @@
             handleFirestoreError(error, 'list', 'lixeira_2027');
         });
     };
+
+    // Inicia sincronização automática de períodos disponíveis já na abertura do app
+    window.escutarFeriasDoBanco((lista) => {
+        registrosCache = lista;
+        if (document.getElementById('screen-options').classList.contains('active')) {
+            renderizarDisponibilidade();
+            atualizarRotulosSelectsOpcoes();
+        }
+    });
 </script>
 
 </body>
